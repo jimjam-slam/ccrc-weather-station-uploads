@@ -1,0 +1,17 @@
+*.txt
+*.mp3
+*.json
+upload_video.py
+flickr-shell-uploader
+/venv
+/ffmpeg
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
