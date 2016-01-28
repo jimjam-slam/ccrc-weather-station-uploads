@@ -1,11 +1,21 @@
 #!/bin/bash -l
+# custom-youtube.sh: render a image series from the specified date-time range
+# as a video and upload to youtube
+# james goldie, climate change research centre, unsw australia, 2015-2016
+# arguments:
+#   1) the path to the scripts folder (paths are relative!)
+#   2) path to your image folder's parent folder
+#   3) date-time to start from
+#   4) date-time to end
+#   5) frame rate
+# usage eg: ./custom-youtube.sh . ~/weathercam "45 minutes ago" "5 minutes ago" 24
 
-cd /home/z3479352/ccrcpi-scripts
-DATA_DIR="/srv/ccrc/data48/z3479352/ccrc-weather"
-VID_START="$1"
-VID_END="$2"
+cd "$1"
+DATA_DIR="$2"
+VID_START="$3"
+VID_END="$4"
 TODAY=$(date +"%Y-%m-%d")
-FRAME_RATE="$3"
+FRAME_RATE="$5"
 
 # convert custom start and end times to 'n minutes ago' format for find
 VID_START=$(date --date="$VID_START" +%s)
@@ -18,7 +28,6 @@ VID_END=$((($NOW - $VID_END) / 60))
 find "$DATA_DIR"/images -type f -mmin -"$VID_START" -mmin +"$VID_END" > custom-list.txt
 
 # transform file list to prep for ffmpeg (including adding metadata) line-by-line
-IMG_PATH="$DATA_DIR"/images
 EXT=".jpg"
 while read FULLNAME; do
     # extract date-time part of filename
@@ -75,6 +84,6 @@ venv/bin/python upload_video.py \
     --noauth_local_webserver
 
 rm -f "$DATA_DIR"/videos/custom-"$TODAY".mov
-#rm -f custom-list.txt
-#rm -f custom-list2.txt
+# rm -f custom-list.txt
+# rm -f custom-list2.txt
 

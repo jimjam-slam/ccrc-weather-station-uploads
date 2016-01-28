@@ -1,8 +1,11 @@
 #!/bin/bash -l
+# render an image sequence of this morning's sunset and upload to youtube
+# designed to be scheduled by get-sun-times.sh
+# james goldie, climate change research centre, unsw australia, 2015-2016
+# argument: path to the scripts folder (paths are relative!)
 
 # import $SUNSET_START and $SUNSET_END
-cd ${0%/*}
-DATA_DIR="/srv/ccrc/data48/z3479352/ccrc-weather"
+DATA_DIR="$1"
 TODAY=$(date +"%Y-%m-%d")
 SUNSET_START=`cat sunset-start.txt`
 SUNSET_END=`cat sunset-end.txt`
@@ -18,7 +21,6 @@ SUNSET_END=$((($NOW - $SUNSET_END) / 60))
 find "$DATA_DIR"/images -type f -mmin -"$SUNSET_START" -mmin +"$SUNSET_END" > sunset-list.txt
 
 # transform file list to prep for ffmpeg (including adding metadata) line-by-line
-IMG_PATH="$DATA_DIR"/images
 EXT=".jpg"
 while read FULLNAME; do
     # extract date-time part of filename
@@ -26,12 +28,12 @@ while read FULLNAME; do
         DT="${BASH_REMATCH[0]}"
     fi
 
-    printf "file \'$FULLNAME\'\nfile_packet_metadata dt=$DT\n" >> sunrise-list2.txt
-done <sunrise-list.txt
-mv sunrise-list2.txt sunrise-list.txt
+    printf "file \'$FULLNAME\'\nfile_packet_metadata dt=$DT\n" >> sunset-list2.txt
+done <sunset-list.txt
+mv sunset-list2.txt sunset-list.txt
 
 # render the video
-nice -n 20 /share/apps/ffmpeg/2.6.2/ffmpeg -threads 6 -f concat -r 30 \
+nice -n 20 ffmpeg/ffmpeg -threads 6 -f concat -r 30 \
     -i sunset-list.txt -i \
     waltz-flowers-tchaikovsky.mp3 \
     -threads 6 \
@@ -75,8 +77,8 @@ venv/bin/python upload_video.py \
     --noauth_local_webserver
 
 rm -f "$DATA_DIR"/videos/sunset-"$TODAY".mov
-rm -f sunset-list.txt
-rm -f sunset-list2.txt
+# rm -f sunset-list.txt
+# rm -f sunset-list2.txt
 rm -f sunset-start.txt
 rm -f sunset-end.txt
 

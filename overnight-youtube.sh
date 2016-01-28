@@ -1,8 +1,10 @@
 #!/bin/bash -l
+# render an image sequence of the previous night and upload to youtube
+# designed to be scheduled by get-sun-times.sh
+# james goldie, climate change research centre, unsw australia, 2015-2016
 
 # import $OVERNIGHT_START and $OVERNIGHT_END
-cd ${0%/*}
-DATA_DIR="/srv/ccrc/data48/z3479352/ccrc-weather"
+DATA_DIR="$1"
 TODAY=$(date +"%Y-%m-%d")
 
 # convert overnight start and end times to 'n minutes ago' format for find
@@ -16,7 +18,6 @@ OVERNIGHT_END=$((($NOW - $OVERNIGHT_END) / 60))
 find "$DATA_DIR"/images -type f -mmin -"$OVERNIGHT_START" -mmin +"$OVERNIGHT_END" > overnight-list.txt
 
 # transform file list to prep for ffmpeg (including adding metadata) line-by-line
-IMG_PATH="$DATA_DIR"/images
 EXT=".jpg"
 while read FULLNAME; do
     # extract date-time part of filename
@@ -29,7 +30,7 @@ done <overnight-list.txt
 mv overnight-list2.txt overnight-list.txt
 
 # render the video
-nice -n 20 /share/apps/ffmpeg/2.6.2/ffmpeg -threads 6 -f concat -r 30 \
+nice -n 20 ffmpeg/ffmpeg -threads 6 -f concat -r 30 \
     -i overnight-list.txt \
     -i waltz-flowers-tchaikovsky.mp3 \
     -threads 6 \
@@ -73,6 +74,6 @@ venv/bin/python upload_video.py \
     --noauth_local_webserver
 
 rm -f "$DATA_DIR"/videos/overnight-"$TODAY".mov
-rm -f overnight-list2.txt
-rm -f overnight-list.txt
+# rm -f overnight-list2.txt
+# rm -f overnight-list.txt
 
